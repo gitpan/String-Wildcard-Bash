@@ -4,7 +4,7 @@ use 5.010001;
 use strict;
 use warnings;
 
-our $VERSION = '0.01'; # VERSION
+our $VERSION = '0.02'; # VERSION
 
 use Exporter;
 our @ISA = qw(Exporter);
@@ -14,7 +14,7 @@ our @EXPORT_OK = qw(
 
 # note: order is important here, brace encloses the other
 my $re1 =
-    qr/
+    qr(
           # non-escaped brace expression, with at least one comma
           (?P<brace>
               (?<!\\)(?:\\\\)*\{
@@ -23,8 +23,10 @@ my $re1 =
               (?<!\\)(?:\\\\)*\}
           )
       |
-          # non-escaped brace expression, to catch * and ? inside so it does not
-          # go to joker
+          # non-escaped brace expression, to catch * or ? or [...] inside so
+          # they don't go to below pattern, because bash doesn't consider them
+          # wildcards, e.g. '/{et?,us*}' expands to '/etc /usr', but '/{et?}'
+          # doesn't expand at all to /etc.
           (?P<braceno>
               (?<!\\)(?:\\\\)*\{
               (?:           \\\\ | \\\{ | \\\} | [^\\\{\}] )*
@@ -42,7 +44,7 @@ my $re1 =
               # non-escaped * and ?
               (?<!\\)(?:\\\\)*[*?]
           )
-      /ox;
+      )ox;
 
 sub contains_wildcard {
     my $str = shift;
@@ -69,7 +71,7 @@ String::Wildcard::Bash - Bash wildcard string routines
 
 =head1 VERSION
 
-This document describes version 0.01 of String::Wildcard::Bash (from Perl distribution String-Wildcard-Bash), released on 2014-07-26.
+This document describes version 0.02 of String::Wildcard::Bash (from Perl distribution String-Wildcard-Bash), released on 2015-01-03.
 
 =head1 SYNOPSIS
 
@@ -101,18 +103,6 @@ C<$HOME>), arithmetic expression (e.g. C<$[1+2]>), history (C<!>), and so on.
 Although this module has 'Bash' in its name, this set of wildcards should be
 applicable to other Unix shells. Haven't checked completely though.
 
-=head1 TODO
-
-Function to parse string and return all the wildcards (with their types,
-positions, ...)
-
-Function to strip wildcards from string.
-
-Function to convert to other types of wildcards (and/or to check whether it can
-be represented with other types of wildcards).
-
-Function to convert a regex pattern to equivalent wildcard?
-
 =head1 SEE ALSO
 
 L<Regexp::Wildcards> to convert a string with wildcard pattern to equivalent
@@ -128,7 +118,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/String-Wil
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/sharyanto/perl-String-Wildcard-Bash>.
+Source repository is at L<https://github.com/perlancar/perl-String-Wildcard-Bash>.
 
 =head1 BUGS
 
@@ -140,11 +130,11 @@ feature.
 
 =head1 AUTHOR
 
-Steven Haryanto <stevenharyanto@gmail.com>
+perlancar <perlancar@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2014 by Steven Haryanto.
+This software is copyright (c) 2015 by perlancar@cpan.org.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
